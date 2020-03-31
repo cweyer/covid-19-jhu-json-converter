@@ -1,5 +1,5 @@
 require 'bundler/inline'
-require 'CSV'
+require 'csv'
 require 'digest/sha2'
 require 'json'
 
