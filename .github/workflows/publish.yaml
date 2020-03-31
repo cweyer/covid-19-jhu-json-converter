@@ -4,8 +4,6 @@ on:
 
 env:
   IMAGE_NAME: covid19-csse-exporter
-  # Use BuildKit if possible
-  DOCKER_BUILDKIT: 1
 
 jobs:
   publish:
