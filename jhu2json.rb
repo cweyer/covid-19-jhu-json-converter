@@ -1,16 +1,28 @@
-require 'bundler/inline'
 require 'csv'
 require 'digest/sha2'
 require 'json'
+require 'httparty'
+require 'slop'
 require './country_mappings'
 
-gemfile do
-  source 'https://rubygems.org'
-  gem 'json'
-  gem 'httparty'
+VERSION = 0.1
+
+opts = Slop.parse do |o|
+  o.bool '-h', '--help', 'help'
+  # TODO: Make this an array and default to everything.
+  o.string '-r', '--region', "input file region (default: global)", default: "global"
+  o.string '-o', '--output', "output file (default: STDOUT)"
+  o.on '--version', 'print the version' do
+    puts VERSION
+    exit
+  end
 end
 
-# Load most recent data from JHU via Github
+if opts.help?
+  puts opts
+  exit
+end
+
 responses, results, iso_countries_by_name, json = {}, {}, {}, nil
 
 # Load country mapping and re-hash for country name access
@@ -23,9 +35,13 @@ iso_countries.each do |key, country|
   iso_countries_by_name[country['name']] = new_country
 end
 
+# Load most recent data from JHU via Github
 %w( confirmed deaths recovered ).each do |set|
   # Retrieve the data from Github
-  data = HTTParty.get("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_global.csv").body
+  url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_#{opts[:region]}.csv"
+  puts "Loading: #{url}"
+
+  data = HTTParty.get(url).body
 
   # Parse the CSV
   responses[set] = CSV.parse(data)
@@ -66,4 +82,8 @@ end
 end
 
 # Return everything as json
-puts results.values.to_json
+if !opts[:output].nil? && !opts[:output].empty?
+  File.write("#{opts[:output]}", results.values.to_json)
+else
+  puts results.values.to_json
+end
