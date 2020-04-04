@@ -11,7 +11,9 @@ opts = Slop.parse do |o|
   o.bool '-h', '--help', 'help'
   # TODO: Make this an array and default to everything.
   o.string '-r', '--region', "input file region (default: global)", default: "global"
-  o.string '-o', '--output', "output file (default: STDOUT)"
+  o.string '-o', '--output', "output to file, database or STDOUT (default: STDOUT)"
+  o.string '-f', '--filename', "use this file name when outputting to file (defaults to current date)"
+  o.string '-c', '--credentials', "set database credentials as URI (example: postgres://user:password@localhost:1337/mydb)"
   o.on '--version', 'print the version' do
     puts VERSION
     exit
@@ -82,8 +84,50 @@ end
 end
 
 # Return everything as json
-if !opts[:output].nil? && !opts[:output].empty?
-  File.write("#{opts[:output]}", results.values.to_json)
+case opts[:output]
+when 'file'
+  File.write(opts[:filename] || "#{DateTime.now.strftime("%d-%m-%Y")}.json", results.values.to_json)
+
+when 'database'
+  require 'sqlite3'
+  require 'active_record'
+  require './area'
+  require './period'
+
+  ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'covid.db')
+
+  results.each do |key, area|
+    puts "Importing data for #{area[:country]}/#{area[:area]}"
+
+    db_area = Area.find_or_create_by(
+      unique_identifier: key,
+      name: area[:area],
+      country: area[:country]
+    )
+
+    db_area.update(
+      iso_3166_country_name: area[:iso_3166][:country],
+      iso_3166_country_code: area[:iso_3166][:country_code],
+      iso_3166_division_code: area[:iso_3166][:division_code]
+    )
+
+    days = 0
+    area[:dates].each_with_index do |day, index|
+      period = db_area.periods.find_or_create_by(
+        date: day
+      )
+
+      period.update(
+        confirmed: area[:data][:confirmed]&.at(index),
+        recovered: area[:data][:recovered]&.at(index),
+        deaths: area[:data][:deaths]&.at(index)
+      )
+
+      days += 1
+    end
+
+    puts "Imported #{days} data sets for #{area[:country]}/#{area[:area]}"
+  end
 else
   puts results.values.to_json
 end
