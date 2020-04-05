@@ -1,8 +1,5 @@
-require 'sqlite3'
-require 'active_record'
-
-# TODO: Make db configurable
-ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'covid.db')
+require_relative '../command_line_options'
+require_relative '../database'
 
 class CreateAreaTable < ActiveRecord::Migration[6.0]
   def change

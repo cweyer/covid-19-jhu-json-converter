@@ -2,28 +2,10 @@ require 'csv'
 require 'digest/sha2'
 require 'json'
 require 'httparty'
-require 'slop'
 require './country_mappings'
+require './command_line_options'
 
-VERSION = 0.1
-
-opts = Slop.parse do |o|
-  o.bool '-h', '--help', 'help'
-  # TODO: Make this an array and default to everything.
-  o.string '-r', '--region', "input file region (default: global)", default: "global"
-  o.string '-o', '--output', "output to file, database or STDOUT (default: STDOUT)"
-  o.string '-f', '--filename', "use this file name when outputting to file (defaults to current date)"
-  o.string '-c', '--credentials', "set database credentials as URI (example: postgres://user:password@localhost:1337/mydb)"
-  o.on '--version', 'print the version' do
-    puts VERSION
-    exit
-  end
-end
-
-if opts.help?
-  puts opts
-  exit
-end
+VERSION = 0.2
 
 responses, results, iso_countries_by_name, json = {}, {}, {}, nil
 
@@ -40,7 +22,7 @@ end
 # Load most recent data from JHU via Github
 %w( confirmed deaths recovered ).each do |set|
   # Retrieve the data from Github
-  url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_#{opts[:region]}.csv"
+  url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_#{OPTIONS[:region]}.csv"
   puts "Loading: #{url}"
 
   data = HTTParty.get(url).body
@@ -84,17 +66,14 @@ end
 end
 
 # Return everything as json
-case opts[:output]
+case OPTIONS[:output]
 when 'file'
-  File.write(opts[:filename] || "#{DateTime.now.strftime("%d-%m-%Y")}.json", results.values.to_json)
+  File.write(OPTIONS[:filename] || "#{DateTime.now.strftime("%d-%m-%Y")}.json", results.values.to_json)
 
 when 'database'
-  require 'sqlite3'
-  require 'active_record'
+  require './database'
   require './area'
   require './period'
-
-  ActiveRecord::Base.establish_connection(adapter: 'sqlite3', database: 'covid.db')
 
   results.each do |key, area|
     puts "Importing data for #{area[:country]}/#{area[:area]}"
