@@ -24,13 +24,16 @@ class Parser::Global < Parser::Base
 
         results[identifier] = {
           area: row[0],
+          county: nil,
           country: row[1],
+          lat: row[2],
+          long: row[3],
           iso_3166: {
             country: iso_country&.dig('name'),
             country_code: iso_country&.dig('code'),
             division_code: iso_country&.dig(row[1], 'divisions', row[0]),
           },
-          coordinates: [row[2], row[3]],
+          coordinates: [row[2].to_f, row[3].to_f],
           dates: responses[0][4..-1].map { |d| Date.strptime(d, '%m/%d/%y') },
           data: {}
         }

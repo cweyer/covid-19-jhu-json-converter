@@ -5,20 +5,35 @@ require 'httparty'
 require './country_mappings'
 require './command_line_options'
 require './parsers/global'
+require './parsers/us'
 
 VERSION = 0.2
 responses, results, iso_countries_by_name, json = {}, {}, {}, nil
 
-# Load most recent data from JHU via Github
-%w( confirmed deaths recovered ).each do |set|
-  # Retrieve the data from Github
-  url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_#{OPTIONS[:region]}.csv"
-  puts "Loading: #{url}"
+%w( global US ).each do |region|
+  # Load most recent data from JHU (Glboal) via Github
+  %w( confirmed deaths recovered ).each do |set|
+    # Retrieve the data from Github
+    url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_#{set}_#{region}.csv"
+    puts "Loading #{region} data for #{url}"
 
-  data = HTTParty.get(url).body
+    response = HTTParty.get(url)
 
-  parser = Parser::Global.new(data, set: set, previous_results: results)
-  responses[set] = parser.execute
+    # Skip if we can't download the file
+    unless response.code == 200
+      puts "Retrieved code #{response.code} when attempting to download file, skipping"
+      next
+    end
+
+    data = response.body
+
+    parser = case region
+    when 'global' then Parser::Global.new(data, set: set, previous_results: results)
+    when 'US'     then Parser::US.new(data, set: set, previous_results: results)
+    end
+
+    responses.has_key?(set) ? responses[set].merge(parser.execute) : responses[set] = parser.execute
+  end
 end
 
 # Return everything as json
@@ -32,12 +47,15 @@ when 'database'
   require './period'
 
   results.each do |key, area|
-    puts "Importing data for #{area[:country]}/#{area[:area]}"
+    puts "Importing data for #{area[:country]}/#{area[:area]}/#{area[:county]}"
 
     db_area = Area.find_or_create_by(
       unique_identifier: key,
       name: area[:area],
-      country: area[:country]
+      county: area[:county],
+      country: area[:country],
+      lat: area[:coordinates].first,
+      long: area[:coordinates].last
     )
 
     db_area.update(
@@ -61,7 +79,7 @@ when 'database'
       days += 1
     end
 
-    puts "Imported #{days} data sets for #{area[:country]}/#{area[:area]}"
+    puts "Imported #{days} data sets for #{area[:country]}/#{area[:area]}/#{area[:county]}"
   end
 else
   puts results.values.to_json

@@ -6,7 +6,11 @@ class CreateAreaTable < ActiveRecord::Migration[6.0]
     create_table :areas do |table|
       table.string :unique_identifier, null: false
       table.string :country, null: false
+      table.string :county
       table.string :name
+      table.integer :population
+      table.decimal :lat
+      table.decimal :long
       table.string :iso_3166_country_name
       table.string :iso_3166_division_code
       table.string :iso_3166_country_code
