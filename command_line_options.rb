@@ -7,6 +7,7 @@ OPTIONS = Slop.parse do |o|
   o.string '-o', '--output', "output to file, database or STDOUT (default: STDOUT)"
   o.string '-f', '--filename', "use this file name when outputting to file (defaults to current date)"
   o.string '-c', '--credentials', "set database credentials as URI (example: postgres://user:password@localhost:1337/mydb)"
+  o.string '-s', '--ssl-ca', "set the ca path if you want to use a cert with your db connection"
   o.on '--version', 'print the version' do
     puts VERSION
     exit

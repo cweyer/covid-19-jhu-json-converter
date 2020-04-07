@@ -31,6 +31,8 @@ def database_configuration
     sqlite: "sqlite"
   }.with_indifferent_access
 
+  puts "SSLCA: #{OPTIONS[:ssl_ca]}"
+
   {
     encoding:   qs["encoding"] || encodings[uri.scheme] ,
     adapter:    adapters[uri.scheme],
@@ -40,7 +42,8 @@ def database_configuration
     username:   ui.first,
     password:   ui.last,
     reconnect:  qs["reconnect"] || true,
-    pool:       qs["pool"] || 5
+    pool:       qs["pool"] || 5,
+    sslca:      OPTIONS[:ssl_ca]
   }
 end
 

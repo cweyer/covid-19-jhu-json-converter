@@ -39,7 +39,9 @@ end
 # Return everything as json
 case OPTIONS[:output]
 when 'file'
-  File.write(OPTIONS[:filename] || "#{DateTime.now.strftime("%d-%m-%Y")}.json", results.values.to_json)
+  file = OPTIONS[:filename] || "#{DateTime.now.strftime("%d-%m-%Y")}.json"
+  puts "Writing output to file: #{file}"
+  File.write(file, results.values.to_json)
 
 when 'database'
   require './database'
