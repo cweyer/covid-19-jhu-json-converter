@@ -11,8 +11,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /exporter
-COPY . .
+COPY Gemfile Gemfile.lock ./
 
 RUN bundle install
 
-CMD ["/usr/local/bin/ruby", "jhu2json.rb"]
+COPY . .
+
+ENTRYPOINT ["/usr/local/bin/ruby", "jhu2json.rb"]

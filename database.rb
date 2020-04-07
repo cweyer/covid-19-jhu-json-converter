@@ -17,11 +17,23 @@ def database_configuration
     postgres: 5432,
     mysql: 3306,
     sqlite: nil
-  }
+  }.with_indifferent_access
 
-  return {
-    encoding:   qs["encoding"] || "utf-8",
-    adapter:    uri.scheme,
+  encodings = {
+    postgres: "utf-8",
+    mysql: "utf8",
+    sqlite: "utf-8"
+  }.with_indifferent_access
+
+  adapters = {
+    postgres: "postgresql",
+    mysql: "mysql2",
+    sqlite: "sqlite"
+  }.with_indifferent_access
+
+  {
+    encoding:   qs["encoding"] || encodings[uri.scheme] ,
+    adapter:    adapters[uri.scheme],
     host:       uri.host,
     port:       uri.port || ports[uri.scheme],
     database:   uri.path[1..-1],

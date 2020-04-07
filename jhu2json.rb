@@ -45,15 +45,23 @@ when 'database'
   require './database'
   require './area'
   require './period'
+  require './migrations/create_areas'
+  require './migrations/create_periods'
 
   results.each do |key, area|
-    puts "Importing data for #{area[:country]}/#{area[:area]}/#{area[:county]}"
+    puts "Importing data for #{area[:country]}/#{area[:province_state]}/#{area[:admin2]}"
 
     db_area = Area.find_or_create_by(
       unique_identifier: key,
-      name: area[:area],
-      county: area[:county],
+      iso2: area[:iso2],
+      iso3: area[:iso3],
+      code3: area[:code3],
+      fips: area[:fips],
+      admin2: area[:admin2],
+      province_state: area[:province_state],
       country: area[:country],
+      combined_key: area[:combined_key],
+      population: area[:population],
       lat: area[:coordinates].first,
       long: area[:coordinates].last
     )

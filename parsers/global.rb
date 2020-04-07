@@ -23,8 +23,7 @@ class Parser::Global < Parser::Base
         iso_country = iso_countries_by_name[row[1]] || iso_countries_by_name[MANUAL_COUNTRY_MAPPINGS[row[1]]]
 
         results[identifier] = {
-          area: row[0],
-          county: nil,
+          province_state: row[0],
           country: row[1],
           lat: row[2],
           long: row[3],

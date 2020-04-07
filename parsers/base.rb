@@ -1,5 +1,6 @@
 module Parser
   class Base
+    @@iso_countries_by_id = Hash.new
     @@iso_countries_by_name = Hash.new
     attr_accessor :data, :set, :results
 
@@ -10,6 +11,10 @@ module Parser
 
     def iso_countries_by_name
       @@iso_countries_by_name || fetch_iso_countries
+    end
+
+    def iso_countries_by_id
+      @@iso_countries_by_id || fetch_iso_countries
     end
 
     def execute
@@ -27,6 +32,10 @@ module Parser
         new_country['divisions'] = new_country['divisions'].invert
 
         @@iso_countries_by_name[country['name']] = new_country
+
+        new_divisions = country
+        new_divisions['divisions'] = country['divisions']
+        @@iso_countries_by_id[key] = new_divisions
       end
     end
   end
