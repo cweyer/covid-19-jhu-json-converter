@@ -31,8 +31,6 @@ def database_configuration
     sqlite: "sqlite"
   }.with_indifferent_access
 
-  puts "SSLCA: #{OPTIONS[:ssl_ca]}"
-
   {
     encoding:   qs["encoding"] || encodings[uri.scheme] ,
     adapter:    adapters[uri.scheme],

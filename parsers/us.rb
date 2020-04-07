@@ -29,7 +29,8 @@ class Parser::US < Parser::Base
             division_code: iso_country&.dig('divisions', row[6]),
           },
           coordinates: [row[8] == '0.0' ? nil : row[8].to_f, row[9] == '0.0' ? nil : row[9].to_f].compact,
-          population: row[10],
+          combined_key: row[10],
+          population: row[11],
           dates: responses[0][11..-1].map { |d| Date.strptime(d, '%m/%d/%y') },
           data: {}
         }
