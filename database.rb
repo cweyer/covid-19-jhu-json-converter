@@ -43,7 +43,7 @@ def database_configuration
     password:   ui.last,
     reconnect:  qs["reconnect"] || true,
     pool:       qs["pool"] || 5,
-    sslca:      OPTIONS[:ssl_ca]
+    sslverify:  OPTIONS.ssl?
   }
 end
 
