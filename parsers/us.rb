@@ -43,14 +43,17 @@ class Parser::US < Parser::Base
           },
           coordinates: [row[8] == '0.0' ? nil : row[8].to_f, row[9] == '0.0' ? nil : row[9].to_f].compact,
           combined_key: row[10],
-          population: headers.include?('population') ? row[11] : nil,
           dates: responses[0][offset..-1].map { |d| Date.strptime(d, '%m/%d/%y') },
           data: {}
         }
       end
 
+      if headers.include?('population')
+        results[identifier][:population]  = row[11]
+      end
+
       # Add the actual numbers to the combined dataset
-      results[identifier][:data][@set] = row[11..-1].map(&:to_i)
+      results[identifier][:data][@set] = row[offset..-1].map(&:to_i)
     end
 
     return results
