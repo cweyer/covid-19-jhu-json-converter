@@ -92,5 +92,6 @@ when 'database'
     puts "Imported #{days} data sets for #{area[:country]}/#{area[:area]}/#{area[:county]}"
   end
 else
+
   puts results.values.to_json
 end

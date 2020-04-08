@@ -28,7 +28,7 @@ def database_configuration
   adapters = {
     postgres: "postgresql",
     mysql: "mysql2",
-    sqlite: "sqlite"
+    sqlite: "sqlite3"
   }.with_indifferent_access
 
   {

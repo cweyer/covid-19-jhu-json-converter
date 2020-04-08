@@ -5,12 +5,13 @@ class Parser::US < Parser::Base
   def execute
     # Parse the CSV
     responses = transform
+    headers = responses[0].collect(&:downcase)
     offset = 0
 
     # Find the column where the data starts by going through all headers and
     # trying to convert them into a date. If it works we have found our first
     # date column, otherwise we increase the offset towards the first data column
-    responses[0].each do |header|
+    headers.each do |header|
       begin
         Date.strptime(header, '%m/%d/%y')
       rescue Date::Error, TypeError
@@ -42,7 +43,7 @@ class Parser::US < Parser::Base
           },
           coordinates: [row[8] == '0.0' ? nil : row[8].to_f, row[9] == '0.0' ? nil : row[9].to_f].compact,
           combined_key: row[10],
-          population: row[11],
+          population: headers.include?('population') ? row[11] : nil,
           dates: responses[0][offset..-1].map { |d| Date.strptime(d, '%m/%d/%y') },
           data: {}
         }
